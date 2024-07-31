@@ -1,0 +1,24 @@
+{
+  "name": "megahal.js",
+  "version": "0.1.0",
+  "description": "A port of kranzky/megahal to JS, written using TS",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "megahal",
+    "hal",
+    "ai",
+    "chat",
+    "bot"
+  ],
+  "author": "Chen Asraf <contact@casraf.dev>",
+  "license": "UNLICENSE",
+  "devDependencies": {
+    "@eslint/js": "^9.8.0",
+    "tsx": "^4.16.3",
+    "typescript": "^5.5.4",
+    "typescript-eslint": "^8.0.0"
+  }
+}
