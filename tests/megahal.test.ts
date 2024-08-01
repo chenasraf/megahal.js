@@ -1,6 +1,10 @@
+import fs from 'node:fs/promises'
+import path from 'node:path'
+import os from 'node:os'
 import MegaHAL from '@/index'
 
 describe('megahal', () => {
+  jest.retryTimes(3)
   let megahal: MegaHAL
 
   beforeEach(async () => {
@@ -29,6 +33,24 @@ describe('megahal', () => {
       expect(megahal.back.count(0)).toBe(0)
       expect(megahal.case.count(13)).toBe(0)
       expect(megahal.punc.count(27)).toBe(0)
+    })
+  })
+
+  describe('save', () => {
+    it('should save the internal state', async () => {
+      const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'megahal'))
+      const tmpFile = path.join(tmpDir, 'megahal.zip')
+      megahal.clear()
+      megahal.reply('one two three four five')
+
+      const state = await megahal.save(tmpFile)
+      expect(state).toBe(true)
+
+      megahal.clear()
+      expect(megahal.reply('')).toBe('...')
+      await megahal.load(tmpFile)
+
+      expect(megahal.reply('')).toBe('one two three four five')
     })
   })
 

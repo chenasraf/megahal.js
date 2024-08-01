@@ -2,6 +2,10 @@ import { Keywords } from './keywords'
 import { loadPersonalities } from './personalities'
 import { SoothPredictor } from './sooth'
 import { contextHash, notNull, zip } from './utils'
+import JSZip from 'jszip'
+import fs from 'node:fs/promises'
+import path from 'node:path'
+import os from 'node:os'
 
 export class MegaHAL {
   learning = true
@@ -52,6 +56,62 @@ export class MegaHAL {
 
   static list() {
     return Object.keys(this.personalities)
+  }
+
+  async save(filename: string) {
+    try {
+      const zip = new JSZip()
+      const data = {
+        version: 'MH11',
+        learning: this.learning,
+        brain: this.brain,
+        dictionary: this.dictionary,
+      }
+      zip.file('dictionary', JSON.stringify(data))
+      for (const name of ['seed', 'fore', 'back', 'case', 'punc'] as const) {
+        const tmp = await fs.mkdtemp(path.join(os.tmpdir(), 'megahal'))
+        const tmpFile = path.join(tmp, name)
+        this[name].save(tmpFile)
+        const content = await fs.readFile(tmpFile)
+        zip.file(name, content)
+      }
+
+      const res = await zip.generateAsync({ type: 'uint8array' })
+      await fs.writeFile(filename, res)
+      return true
+    } catch (e) {
+      console.error(e)
+      return false
+    }
+  }
+
+  async load(filename: string) {
+    const zip = new JSZip()
+    const data = await fs.readFile(filename)
+    const loaded = await zip.loadAsync(data)
+    const dict: {
+      version: string
+      learning: boolean
+      brain: Record<string, number>
+      dictionary: Record<string, number>
+    } = await zip
+      .file('dictionary')
+      ?.async('string')
+      .then((x) => JSON.parse(x))
+    this.learning = dict.learning
+    this.brain = dict.brain
+    this.dictionary = dict.dictionary
+
+    for (const name of ['seed', 'fore', 'back', 'case', 'punc'] as const) {
+      const content = await loaded.file(name)?.async('uint8array')
+      if (!content) {
+        throw new Error('Missing file')
+      }
+      const tmp = await fs.mkdtemp(path.join(os.tmpdir(), 'megahal'))
+      const tmpFile = path.join(tmp, name)
+      await fs.writeFile(tmpFile, content)
+      this[name].load(tmpFile)
+    }
   }
 
   become(name = 'default', _bar: unknown = null) {

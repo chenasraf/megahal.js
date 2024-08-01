@@ -39,72 +39,51 @@ export class SoothPredictor {
 
   save(filename: string): boolean {
     try {
-      // Open file in write-binary mode
       const file = fs.openSync(filename, 'w')
 
-      // Create a buffer for the initial header and predictor data
-      const header = Buffer.from('MH11')
-      const errorEventBuffer = Buffer.alloc(4)
-      const contextsSizeBuffer = Buffer.alloc(4)
+      // Write the header
+      fs.writeSync(file, 'MH11')
+      const buffer = Buffer.alloc(8)
+      buffer.writeInt32LE(this.errorEvent, 0)
+      buffer.writeInt32LE(this.contextsSize, 4)
+      fs.writeSync(file, buffer)
 
-      errorEventBuffer.writeInt32LE(this.errorEvent, 0)
-      contextsSizeBuffer.writeInt32LE(this.contextsSize, 0)
-
-      // Write the header and predictor data to the file
-      fs.writeSync(file, header)
-      fs.writeSync(file, errorEventBuffer)
-      fs.writeSync(file, contextsSizeBuffer)
-
-      // Iterate over contexts and write each context's data
-      for (let i = 0; i < this.contextsSize; ++i) {
+      // Write each context
+      for (let i = 0; i < this.contextsSize; i++) {
         const context = this.contexts[i]
-        const idBuffer = Buffer.alloc(4)
-        const countBuffer = Buffer.alloc(4)
-        const statisticsSizeBuffer = Buffer.alloc(4)
-
-        idBuffer.writeInt32LE(context.id, 0)
-        countBuffer.writeInt32LE(context.count, 0)
-        statisticsSizeBuffer.writeInt32LE(context.statisticsSize, 0)
-
-        // Write context's basic data to the file
-        fs.writeSync(file, idBuffer)
-        fs.writeSync(file, countBuffer)
-        fs.writeSync(file, statisticsSizeBuffer)
+        const contextBuffer = Buffer.alloc(12)
+        contextBuffer.writeInt32LE(context.id, 0)
+        contextBuffer.writeInt32LE(context.count, 4)
+        contextBuffer.writeInt32LE(context.statisticsSize, 8)
+        fs.writeSync(file, contextBuffer)
 
         for (let j = 0; j < context.statisticsSize; j++) {
-          const statisticBuffer = this.serializeStatistic(context.statistics[j])
-
+          const statisticBuffer = Buffer.alloc(8)
+          statisticBuffer.writeInt32LE(context.statistics[j].event, 0)
+          statisticBuffer.writeInt32LE(context.statistics[j].count, 4)
           fs.writeSync(file, statisticBuffer)
         }
       }
 
-      // Close the file
       fs.closeSync(file)
-
       return true
     } catch (error) {
       console.error('Error saving SoothPredictor:', error)
       return false
     }
   }
+
   load(filename: string): boolean {
     try {
       const fileBuffer = fs.readFileSync(filename)
 
-      // Check the file size
-      if (fileBuffer.length < 12) {
-        return false
-      }
-
-      // Read and verify the code
-      const code = fileBuffer.subarray(0, 4).toString()
-      if (code !== 'MH11') {
+      // Verify the header
+      if (fileBuffer.toString('utf8', 0, 4) !== 'MH11') {
         return false
       }
 
       this.clear()
 
-      // Read error_event and contexts_size
       this.errorEvent = fileBuffer.readInt32LE(4)
       this.contextsSize = fileBuffer.readInt32LE(8)
 
@@ -115,16 +94,18 @@ export class SoothPredictor {
       let offset = 12
       this.contexts = new Array(this.contextsSize)
 
-      for (let i = 0; i < this.contextsSize; ++i) {
+      for (let i = 0; i < this.contextsSize; i++) {
         const id = fileBuffer.readInt32LE(offset)
         const count = fileBuffer.readInt32LE(offset + 4)
         const statisticsSize = fileBuffer.readInt32LE(offset + 8)
         offset += 12
 
         const statistics = new Array(statisticsSize)
-        for (let j = 0; j < statisticsSize; ++j) {
-          statistics[j] = this.parseStatistic(fileBuffer, offset)
-          offset += 12 // Update based on the size of SoothStatistic
+        for (let j = 0; j < statisticsSize; j++) {
+          const event = fileBuffer.readInt32LE(offset)
+          const count = fileBuffer.readInt32LE(offset + 4)
+          statistics[j] = { event, count }
+          offset += 8
         }
 
         this.contexts[i] = { id, count, statisticsSize, statistics }
