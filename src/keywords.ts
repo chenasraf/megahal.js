@@ -11,11 +11,11 @@ export class Keywords {
         if (/^[0-9]/.test(word)) {
           return null
         }
-        if (this.BANNED.includes(word)) {
+        if (this.BANNED.includes(word.toUpperCase())) {
           return null
         }
-        if (this.SWAP[word]) {
-          return this.SWAP[word]
+        if (this.SWAP[word.toUpperCase()]) {
+          return this.SWAP[word.toUpperCase()]
         }
         return word
       })
@@ -68,9 +68,9 @@ export class Keywords {
     ['SORRY', 'APOLOGY'],
   ]
 
-  static SWAP: Record<string, string> = Object.fromEntries(
-    Object.entries(this.ANTONYMS).map(([k, v]) => [v, k]),
-  )
+  static get SWAP(): Record<string, string> {
+    return Object.fromEntries(this.ANTONYMS.concat(this.ANTONYMS.map(([k, v]) => [v, k])))
+  }
 
   static AUXILIARY = [
     'DISLIKE',

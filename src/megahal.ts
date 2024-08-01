@@ -14,10 +14,9 @@ export class MegaHAL {
 
   dictionary: Record<string, number> = { '<error>': 0, '<fence>': 1, '<blank>': 2 }
 
-  constructor() {
-    loadPersonalities().then(() => {
-      this.become('default')
-    })
+  async init() {
+    await loadPersonalities()
+    this.become('default')
   }
 
   clear() {
@@ -35,7 +34,7 @@ export class MegaHAL {
   }
 
   _train(data: string[], _bar: unknown = null) {
-    data = data.map((x) => x.trim())
+    data = data.map((x) => x.trim()).filter(Boolean)
     for (const line of data) {
       const [puncs, norms, words] = this._decompose(line)
       this._learn(puncs ?? [], norms ?? [], words ?? [])
