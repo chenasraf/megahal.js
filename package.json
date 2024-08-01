@@ -4,6 +4,7 @@
   "description": "A port of kranzky/megahal to JS, written using TS",
   "main": "index.js",
   "scripts": {
+    "build": "tsc",
     "test": "jest"
   },
   "keywords": [
