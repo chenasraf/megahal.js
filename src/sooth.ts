@@ -260,34 +260,47 @@ export class SoothPredictor {
 
   distribution(id: number) {
     const context = this.findContext(id)
-    return context.statistics
+    if (!context.statisticsSize) return null
+    const total = context.count
+    return context.statistics.reduce(
+      (acc, stat) => {
+        acc[stat.event] = stat.count / total
+        return acc
+      },
+      {} as Record<number, number>,
+    )
   }
 
   uncertainty(id: number) {
     const context = this.findContext(id)
+    if (!context.statisticsSize) return null
+
     let uncertainty = 0
     for (let i = 0; i < context.statisticsSize; i++) {
-      if (context.statistics[i].count == 0) {
-        const frequency = context.statistics[i].count / context.count
+      const frequency = context.statistics[i].count / context.count
+      if (frequency > 0) {
         uncertainty -= frequency * Math.log2(frequency)
       }
     }
+
     return uncertainty
   }
 
   surprise(id: number, event: number) {
     const context = this.findContext(id)
-    if (context.count == 0) {
-      return -1
+    if (context.count === 0) {
+      return null
     }
 
     const statistic = this.findStatistic(context, event)
-    if (statistic.count == 0) {
-      return -1
+    if (statistic.count === 0) {
+      return null
     }
 
     const frequency = statistic.count / context.count
-    return -Math.log2(frequency)
+    const surpriseValue = -Math.log2(frequency)
+
+    return Object.is(surpriseValue, -0) ? 0 : surpriseValue
   }
 
   frequency(id: number, event: number) {

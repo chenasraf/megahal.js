@@ -6,18 +6,20 @@ This is a JavaScript implementation of the MegaHAL algorithm, more specifically 
 one-to-one port of [kranzky/megahal](https://github.com/kranzky/megahal). Major credits to kranzky,
 without whom this wouldn't exist.
 
-It is not currently usable as a CLI application, but you can embed it into your own Node.js code.
+## Features & Caveats
 
-TypeScript types are provided within the package.
+- TypeScript types are provided within the package.
 
-Training a personality is rather slow and may take a few seconds to complete. Anyone is more than
-welcome to suggest any performance improvements, I am sure many can be made.
+- A [Sooth](https://rubygems.org/gems/sooth) stochastic predictive model is also implemented almost
+  one-to-one and may later be extracted into a separate package.
 
-A [Sooth](https://rubygems.org/gems/sooth) stochastic predictive model is also implemented almost
-one-to-one and may later be extracted into a separate package.
+- Both are licensed under the [Unlicense](./UNLICENSE) license, in the spirit of the original
+  packages. So basically, do whatever you want with it, but no warranty!
 
-Both are licensed under the [Unlicense](./UNLICENSE) license, in the spirit of the original
-packages. So basically, do whatever you want with it, but no warranty!
+- Training a personality is rather slow and may take a few seconds to complete. Anyone is more than
+  welcome to suggest any performance improvements, I am sure many can be made.
+
+- It is not currently usable as a CLI application, but you can embed it into your own Node.js code.
 
 ## Installation
 
