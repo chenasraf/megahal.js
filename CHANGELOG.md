@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.3](https://github.com/chenasraf/megahal.js/compare/v1.0.2...v1.0.3) (2024-08-02)
+
+
+### Bug Fixes
+
+* sooth algorithm ([5413180](https://github.com/chenasraf/megahal.js/commit/5413180b0534b22a806d83f63a67240d4cb90958))
+
 ## [1.0.2](https://github.com/chenasraf/megahal.js/compare/v1.0.1...v1.0.2) (2024-08-02)
 
 
