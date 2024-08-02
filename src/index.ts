@@ -1,4 +1,3 @@
 import { MegaHAL } from './megahal'
-import { loadPersonalities } from './personalities'
-loadPersonalities()
+import './personalities'
 export default MegaHAL
