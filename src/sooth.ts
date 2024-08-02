@@ -13,33 +13,26 @@ export interface SoothStatistic {
 }
 
 export class SoothPredictor {
-  errorEvent: number
-  contexts: SoothContext[] = []
-  contextsSize = 0
+  public errorEvent: number
+  private contexts: SoothContext[] = []
+  private contextsSize = 0
 
   constructor(errorEvent = 0) {
     this.errorEvent = errorEvent
   }
 
-  clear() {
+  /**
+   * Clears all contexts.
+   */
+  public clear(): void {
     this.contexts = []
     this.contextsSize = 0
   }
 
-  serializeStatistic(statistic: SoothStatistic): Buffer {
-    const buffer = Buffer.alloc(8)
-    buffer.writeInt32LE(statistic.event, 0)
-    buffer.writeInt32LE(statistic.count, 4)
-    return buffer
-  }
-
-  parseStatistic(buffer: Buffer, offset: number): SoothStatistic {
-    const event = buffer.readInt32LE(offset)
-    const count = buffer.readInt32LE(offset + 4)
-    return { event, count }
-  }
-
-  save(filename: string): boolean {
+  /**
+   * Saves the predictor state to a file.
+   */
+  public save(filename: string): boolean {
     try {
       const file = fs.openSync(filename, 'w')
 
@@ -59,6 +52,7 @@ export class SoothPredictor {
         contextBuffer.writeInt32LE(context.statisticsSize, 8)
         fs.writeSync(file, contextBuffer)
 
+        // Write each statistic
         for (let j = 0; j < context.statisticsSize; j++) {
           const statisticBuffer = Buffer.alloc(8)
           statisticBuffer.writeInt32LE(context.statistics[j].event, 0)
@@ -75,7 +69,10 @@ export class SoothPredictor {
     }
   }
 
-  load(filename: string): boolean {
+  /**
+   * Loads the predictor state from a file.
+   */
+  public load(filename: string): boolean {
     try {
       const fileBuffer = fs.readFileSync(filename)
 
@@ -121,12 +118,16 @@ export class SoothPredictor {
     }
   }
 
-  findContext(id: number): SoothContext {
+  /**
+   * Finds or creates a context for the given ID.
+   */
+  private findContext(id: number): SoothContext {
     let context: SoothContext | undefined
     let low = 0
     let mid = 0
     let high = this.contextsSize - 1
 
+    // Binary search for the context
     if (this.contextsSize > 0) {
       while (low <= high) {
         mid = Math.floor(low + (high - low) / 2)
@@ -145,6 +146,7 @@ export class SoothPredictor {
       mid = low
     }
 
+    // Create a new context if not found
     this.contextsSize += 1
     this.contexts.push({ id: -1, count: 0, statisticsSize: 0, statistics: [] })
 
@@ -164,12 +166,16 @@ export class SoothPredictor {
     return context
   }
 
-  findStatistic(context: SoothContext, event: number): SoothStatistic {
+  /**
+   * Finds or creates a statistic for the given event within the context.
+   */
+  private findStatistic(context: SoothContext, event: number): SoothStatistic {
     let low = 0
     let high = context.statisticsSize - 1
     let mid = 0
     let statistic: SoothStatistic | null = null
 
+    // Binary search for the statistic
     if (context.statisticsSize > 0) {
       while (low <= high) {
         mid = low + Math.floor((high - low) / 2)
@@ -177,7 +183,7 @@ export class SoothPredictor {
         if (statistic.event < event) {
           low = mid + 1
         } else if (statistic.event > event) {
-          if (mid == 0) {
+          if (mid === 0) {
             break
           }
           high = mid - 1
@@ -189,6 +195,7 @@ export class SoothPredictor {
       mid = low
     }
 
+    // Create a new statistic if not found
     context.statisticsSize += 1
     const newMemory = new Array<SoothStatistic>(context.statisticsSize)
 
@@ -210,19 +217,29 @@ export class SoothPredictor {
     return statistic
   }
 
-  size(id: number) {
+  /**
+   * Returns the size of the statistics for the given context ID.
+   */
+  public size(id: number): number {
     const context = this.findContext(id)
     return context.statisticsSize
   }
 
-  count(id: number) {
+  /**
+   * Returns the count of observations for the given context ID.
+   */
+  public count(id: number): number {
     const context = this.findContext(id)
     return context.count
   }
 
-  observe(id: number, event: number) {
+  /**
+   * Observes an event for the given context ID.
+   */
+  public observe(id: number, event: number): number {
     const context = this.findContext(id)
 
+    // Handle overflow by halving the counts
     if (context.count === Number.MAX_SAFE_INTEGER) {
       context.count = 0
       for (let i = 0; i < context.statisticsSize; i++) {
@@ -240,7 +257,10 @@ export class SoothPredictor {
     return statistic.count
   }
 
-  select(id: number, limit: number) {
+  /**
+   * Selects an event based on the limit for the given context ID.
+   */
+  public select(id: number, limit: number): number {
     const context = this.findContext(id)
     if (limit === 0 || limit > context.count) {
       return this.errorEvent
@@ -258,9 +278,13 @@ export class SoothPredictor {
     return this.errorEvent
   }
 
-  distribution(id: number) {
+  /**
+   * Returns the probability distribution of events for the given context ID.
+   */
+  public distribution(id: number): Record<number, number> | null {
     const context = this.findContext(id)
     if (!context.statisticsSize) return null
+
     const total = context.count
     return context.statistics.reduce(
       (acc, stat) => {
@@ -271,7 +295,10 @@ export class SoothPredictor {
     )
   }
 
-  uncertainty(id: number) {
+  /**
+   * Returns the uncertainty (entropy) for the given context ID.
+   */
+  public uncertainty(id: number): number | null {
     const context = this.findContext(id)
     if (!context.statisticsSize) return null
 
@@ -286,7 +313,10 @@ export class SoothPredictor {
     return uncertainty
   }
 
-  surprise(id: number, event: number) {
+  /**
+   * Returns the surprise for the given event and context ID.
+   */
+  public surprise(id: number, event: number): number | null {
     const context = this.findContext(id)
     if (context.count === 0) {
       return null
@@ -303,7 +333,10 @@ export class SoothPredictor {
     return Object.is(surpriseValue, -0) ? 0 : surpriseValue
   }
 
-  frequency(id: number, event: number) {
+  /**
+   * Returns the frequency of the given event for the context ID.
+   */
+  public frequency(id: number, event: number): number {
     const context = this.findContext(id)
     if (context.count == 0) {
       return 0
