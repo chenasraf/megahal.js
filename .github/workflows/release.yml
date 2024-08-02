@@ -31,11 +31,17 @@ jobs:
       - run: pnpm run ci
       - run: pnpm build
 
-  release-please:
-    needs: build
+  release:
+    needs:
+      - build
+      - test
     runs-on: ubuntu-latest
     steps:
       - uses: googleapis/release-please-action@v4
         with:
           token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
           release-type: node
+      - run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        if: ${{ steps.release.outputs.release_created }}
