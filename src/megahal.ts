@@ -8,19 +8,30 @@ import path from 'node:path'
 import os from 'node:os'
 
 export class MegaHAL {
-  learning = true
-  seed = new SoothPredictor()
-  fore = new SoothPredictor()
-  back = new SoothPredictor()
-  case = new SoothPredictor()
-  punc = new SoothPredictor()
-  brain: Record<string, number> = {}
+  learning: boolean
+  seed: SoothPredictor
+  fore: SoothPredictor
+  back: SoothPredictor
+  case: SoothPredictor
+  punc: SoothPredictor
+  brain: Record<string, number>
 
-  dictionary: Record<string, number> = { '<error>': 0, '<fence>': 1, '<blank>': 2 }
+  dictionary: Record<string, number>
 
-  async init() {
-    await loadPersonalities()
+  constructor() {
+    this.learning = true
+    this.seed = new SoothPredictor(0)
+    this.fore = new SoothPredictor(0)
+    this.back = new SoothPredictor(0)
+    this.case = new SoothPredictor(0)
+    this.punc = new SoothPredictor(0)
+    this.brain = {}
+    this.dictionary = { '<error>': 0, '<fence>': 1, '<blank>': 2 }
     this.become('default')
+  }
+
+  static async init() {
+    await loadPersonalities()
   }
 
   clear() {
@@ -48,7 +59,7 @@ export class MegaHAL {
   static personalities: Record<string, string[]> = {}
 
   static addPersonality(name: string, data: string[]) {
-    if (MegaHAL.personalities[name]) {
+    if (this.personalities[name]) {
       return
     }
     this.personalities[name] = data

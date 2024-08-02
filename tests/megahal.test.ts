@@ -5,11 +5,15 @@ import MegaHAL from '@/index'
 
 describe('megahal', () => {
   jest.retryTimes(3)
+
   let megahal: MegaHAL
+
+  beforeAll(async () => {
+    await MegaHAL.init()
+  })
 
   beforeEach(async () => {
     megahal = new MegaHAL()
-    await megahal.init()
   })
 
   describe('clear', () => {
