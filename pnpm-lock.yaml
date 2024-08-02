@@ -7,6 +7,10 @@ settings:
 importers:
 
   .:
+    dependencies:
+      jszip:
+        specifier: ^3.10.1
+        version: 3.10.1
     devDependencies:
       '@eslint/js':
         specifier: ^9.8.0
@@ -20,9 +24,6 @@ importers:
       jest:
         specifier: ^29.7.0
         version: 29.7.0(@types/node@22.0.2)
-      jszip:
-        specifier: ^3.10.1
-        version: 3.10.1
       prettier:
         specifier: ^3.3.3
         version: 3.3.3
