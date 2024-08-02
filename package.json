@@ -1,6 +1,6 @@
 {
   "name": "megahal.js",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A port of kranzky/megahal to JS, written using TS",
   "main": "index.js",
   "scripts": {

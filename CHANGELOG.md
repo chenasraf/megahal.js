@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.1](https://github.com/chenasraf/megahal.js/compare/v1.0.0...v1.0.1) (2024-08-02)
+
+
+### Bug Fixes
+
+* add missing dependency ([d43a421](https://github.com/chenasraf/megahal.js/commit/d43a421cb6ba6f274ba793e4ac3ea005767e488c))
+
 ## 1.0.0 (2024-08-02)
 
 
