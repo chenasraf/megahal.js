@@ -4,16 +4,26 @@ import os from 'node:os'
 import MegaHAL from '@/index'
 
 describe('megahal', () => {
+  let tmpDir: string
   jest.retryTimes(3)
 
   let megahal: MegaHAL
 
   beforeAll(async () => {
+    tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'megahal'))
     await MegaHAL.init()
   })
 
   beforeEach(async () => {
     megahal = new MegaHAL()
+  })
+
+  describe('list', () => {
+    it('returns an array of all personalities', () => {
+      const ls = MegaHAL.list()
+      expect(ls).toContain('sherlock')
+      expect(ls).toContain('default')
+    })
   })
 
   describe('clear', () => {
@@ -42,8 +52,7 @@ describe('megahal', () => {
 
   describe('save', () => {
     it('should save the internal state', async () => {
-      const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'megahal'))
-      const tmpFile = path.join(tmpDir, 'megahal.zip')
+      const tmpFile = path.join(tmpDir, 'megahal-save.zip')
       megahal.clear()
       megahal.reply('one two three four five')
 
@@ -69,6 +78,18 @@ describe('megahal', () => {
   describe('reply', () => {
     it('swaps keywords', () => {
       expect(megahal.reply('why')).toMatch(/because/i)
+    })
+  })
+
+  describe('train', () => {
+    it('learns from a text file', async () => {
+      const tmpFile = path.join(tmpDir, 'megahal-train.txt')
+      await fs.writeFile(tmpFile, 'one two three four five')
+
+      megahal.clear()
+      expect(megahal.reply('')).toBe('...')
+      await megahal.train(tmpFile)
+      expect(megahal.reply('')).toBe('one two three four five')
     })
   })
 })

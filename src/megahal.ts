@@ -48,6 +48,12 @@ export class MegaHAL {
     return Object.keys(map).length
   }
 
+  async train(filename: string) {
+    const buff = await fs.readFile(filename)
+    const lines = buff.toString().split('\n')
+    this._train(lines)
+  }
+
   _train(data: string[], _bar: unknown = null) {
     data = data.map((x) => x.trim()).filter(Boolean)
     for (const line of data) {
