@@ -6,7 +6,7 @@ import '@/personalities/sherlock'
 
 describe('megahal', () => {
   let tmpDir: string
-  jest.retryTimes(6)
+  jest.retryTimes(6, { logErrorsBeforeRetry: true })
 
   let megahal: MegaHAL
 
