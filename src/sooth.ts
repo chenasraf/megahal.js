@@ -6,10 +6,12 @@ export interface SoothContext {
   statisticsSize: number
   statistics: SoothStatistic[]
 }
+
 export interface SoothStatistic {
   event: number
   count: number
 }
+
 export class SoothPredictor {
   errorEvent: number
   contexts: SoothContext[] = []

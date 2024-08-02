@@ -1,5 +1,4 @@
 import { Keywords } from './keywords'
-import { loadPersonalities } from './personalities'
 import { SoothPredictor } from './sooth'
 import { contextHash, notNull, zip } from './utils'
 import JSZip from 'jszip'
@@ -18,7 +17,7 @@ export class MegaHAL {
 
   dictionary: Record<string, number>
 
-  constructor() {
+  constructor(personality?: string) {
     this.learning = true
     this.seed = new SoothPredictor(0)
     this.fore = new SoothPredictor(0)
@@ -27,14 +26,10 @@ export class MegaHAL {
     this.punc = new SoothPredictor(0)
     this.brain = {}
     this.dictionary = { '<error>': 0, '<fence>': 1, '<blank>': 2 }
-    this.become('default')
+    this.become(personality || 'default')
   }
 
-  static async init() {
-    await loadPersonalities()
-  }
-
-  clear() {
+  public clear(): void {
     this.seed.clear()
     this.fore.clear()
     this.back.clear()
@@ -44,17 +39,25 @@ export class MegaHAL {
     this.brain = {}
   }
 
-  mapLen(map: Record<string, unknown>): number {
+  public mapLength(map: Record<string, unknown>): number {
     return Object.keys(map).length
   }
 
-  async train(filename: string) {
-    const buff = await fs.readFile(filename)
-    const lines = buff.toString().split('\n')
-    this._train(lines)
+  // eslint-disable-next-line no-unused-vars
+  public async train(filename: string): Promise<void>
+  // eslint-disable-next-line no-unused-vars
+  public async train(lines: string[]): Promise<void>
+  public async train(linesOrFilename: string[] | string): Promise<void> {
+    if (typeof linesOrFilename === 'string') {
+      const buff = await fs.readFile(linesOrFilename)
+      const lines = buff.toString().split('\n')
+      this._train(lines)
+    } else if (Array.isArray(linesOrFilename)) {
+      this._train(linesOrFilename)
+    }
   }
 
-  _train(data: string[], _bar: unknown = null) {
+  private _train(data: string[]) {
     data = data.map((x) => x.trim()).filter(Boolean)
     for (const line of data) {
       const [puncs, norms, words] = this._decompose(line)
@@ -62,20 +65,20 @@ export class MegaHAL {
     }
   }
 
-  static personalities: Record<string, string[]> = {}
+  private static personalities: Record<string, string[]> = {}
 
-  static addPersonality(name: string, data: string[]) {
+  public static addPersonality(name: string, data: string[]): void {
     if (this.personalities[name]) {
       return
     }
     this.personalities[name] = data
   }
 
-  static list() {
+  public static list(): string[] {
     return Object.keys(this.personalities)
   }
 
-  async save(filename: string) {
+  public async save(filename: string): Promise<boolean> {
     try {
       const zip = new JSZip()
       const data = {
@@ -102,7 +105,7 @@ export class MegaHAL {
     }
   }
 
-  async load(filename: string) {
+  public async load(filename: string): Promise<void> {
     const zip = new JSZip()
     const data = await fs.readFile(filename)
     const loaded = await zip.loadAsync(data)
@@ -131,7 +134,7 @@ export class MegaHAL {
     }
   }
 
-  become(name = 'default', _bar: unknown = null) {
+  public become(name = 'default'): void {
     if (!MegaHAL.personalities[name]) {
       throw new Error('No such personality')
     }
@@ -139,11 +142,11 @@ export class MegaHAL {
     this._train(MegaHAL.personalities[name])
   }
 
-  _getBrain(context: number[]) {
-    return (this.brain[contextHash(context)] ??= this.mapLen(this.brain))
+  private _getBrain(context: number[]) {
+    return (this.brain[contextHash(context)] ??= this.mapLength(this.brain))
   }
 
-  reply(input: string, error = '...') {
+  public reply(input: string, error = '...'): string {
     const [puncs, norms, words] = this._decompose(input?.trim())
 
     const kwSymbols = [...Keywords.extract(norms)].map((kw) => this.dictionary[kw!]).filter(notNull)
@@ -177,12 +180,12 @@ export class MegaHAL {
     return reply || error
   }
 
-  _learn(puncs: string[], norms: string[], words: string[]) {
+  private _learn(puncs: string[], norms: string[], words: string[]) {
     if (!words.length) return
 
-    const puncSyms = puncs.map((p) => (this.dictionary[p] ||= this.mapLen(this.dictionary)))
-    const normSyms = norms.map((n) => (this.dictionary[n] ||= this.mapLen(this.dictionary)))
-    const wordSyms = words.map((w) => (this.dictionary[w] ||= this.mapLen(this.dictionary)))
+    const puncSyms = puncs.map((p) => (this.dictionary[p] ||= this.mapLength(this.dictionary)))
+    const normSyms = norms.map((n) => (this.dictionary[n] ||= this.mapLength(this.dictionary)))
+    const wordSyms = words.map((w) => (this.dictionary[w] ||= this.mapLength(this.dictionary)))
 
     let context: [number, number]
     let prev = 1
@@ -239,7 +242,7 @@ export class MegaHAL {
     }
   }
 
-  _selectUtterance(utterances: (number[] | null)[], kwSymbols: number[]) {
+  private _selectUtterance(utterances: (number[] | null)[], kwSymbols: number[]) {
     let bestScore = -1
     let bestUtterance: number[] | null = null
     for (const utterance of utterances) {
@@ -254,7 +257,7 @@ export class MegaHAL {
     return bestUtterance
   }
 
-  _calculateScore(utterance: number[] | null, kwSymbols: number[]): number {
+  private _calculateScore(utterance: number[] | null, kwSymbols: number[]): number {
     let score = 0
     let context = [1, 1]
     if (!utterance) return 0
@@ -295,12 +298,12 @@ export class MegaHAL {
     return score
   }
 
-  _generate(kwSymbols: number[]) {
+  private _generate(kwSymbols: number[]) {
     const result = this._getResult(kwSymbols)
     return !result?.length ? null : result
   }
 
-  _getResult(kwSymbols: number[]) {
+  private _getResult(kwSymbols: number[]) {
     const keyword = this._selectKeyword(kwSymbols)
     if (keyword) {
       const contexts = [
@@ -333,13 +336,17 @@ export class MegaHAL {
     return this._randomWalk(this.fore, context, kwSymbols)
   }
 
-  _selectKeyword(kwSymbols: number[]) {
+  private _selectKeyword(kwSymbols: number[]) {
     const aux = Keywords.AUXILIARY.map((a) => this.dictionary[a])
     const syms = kwSymbols.filter((s) => !aux.includes(s))
     return syms[Math.floor(Math.random() * syms.length)]
   }
 
-  _randomWalk(model: SoothPredictor, staticContext: number[], kwSymbols: number[]): number[] {
+  private _randomWalk(
+    model: SoothPredictor,
+    staticContext: number[],
+    kwSymbols: number[],
+  ): number[] {
     const context = [...staticContext]
     const results: number[] = []
     let id = this._getBrain(context)
@@ -369,7 +376,7 @@ export class MegaHAL {
     return results
   }
 
-  _decompose(line: string | undefined | null, maxLen = 1024) {
+  private _decompose(line: string | undefined | null, maxLen = 1024) {
     if (!line) return [null, null, null]
 
     if (line.length > maxLen) {
@@ -386,7 +393,7 @@ export class MegaHAL {
     return [puncs, norms, words]
   }
 
-  _segment(line: string) {
+  private _segment(line: string) {
     let sequence = this._characterSegmentation(line) ? line.split(/(\w)/) : line.split(/(\w+)/)
 
     if (/\w+/.test(sequence[sequence.length - 1])) {
@@ -421,7 +428,7 @@ export class MegaHAL {
     return [separators, words]
   }
 
-  _rewrite(normSymbols: number[]): string | null {
+  private _rewrite(normSymbols: number[]): string | null {
     const decode: Record<number, string> = Object.fromEntries(
       Object.entries(this.dictionary).map((x) => x.reverse()),
     )
@@ -474,7 +481,7 @@ export class MegaHAL {
       .join('')
   }
 
-  _characterSegmentation(_line: string) {
+  private _characterSegmentation(_line: string) {
     // TODO implement more languages
     return false
   }
