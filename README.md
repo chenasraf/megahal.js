@@ -1,7 +1,8 @@
 # megahal.js
 
-This is a JavaScript implementation of the
-[MegaHAL algorithm](https://en.wikipedia.org/wiki/MegaHAL), more specifically a direct, nearly
+[MegaHAL](https://en.wikipedia.org/wiki/MegaHAL) is a simple chatterbot.
+
+This is a JavaScript implementation of the MegaHAL algorithm, more specifically a direct, nearly
 one-to-one port of [kranzky/megahal](https://github.com/kranzky/megahal). Major credits to kranzky,
 without whom this wouldn't exist.
 
@@ -42,32 +43,11 @@ To start you must import the main class from the module.
 import MegaHAL from 'megahal.js'
 ```
 
-### Loading personalities
-
-You can load all the default personalities at once, individually, or create your own personalities
-instead. Only the `default` personality is loaded by default.
-
-```typescript
-// load all personalities
-import 'megahal.js/personalities'
-
-// load individual personalities
-import 'megahal.js/personalities/starwars'
-
-// load a custom personality
-MegaHAL.addPersonality('name', [
-  'line 1',
-  'line 2',
-  // ...
-])
-```
-
 ### Using MegaHAL
 
 Create a new instance of MegaHAL, and provide the personality you would like to use, using the name.
 
-> If you omit the personality name, `default` will be used, but you _have to ensure_ that you have
-> loaded it through one of the methods mentioned above.
+> If you omit the personality name, `default` will be used.
 
 Use `.reply(line)` to get a response for a a given line of text, and also learn from that line in
 the process.
@@ -76,7 +56,6 @@ You can use `.train(filename)` or `.train(lines)` to manually train the bot on t
 
 ```typescript
 import { MegaHAL } from 'megahal.js'
-import 'megahal.js/personalities/default'
 
 const bot = new MegaHAL('default')
 
