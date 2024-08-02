@@ -1,4 +1,4 @@
-import { MegaHAL } from '@/megahal'
+import { MegaHAL } from '../megahal'
 
 MegaHAL.addPersonality('pepys', [
   `I was sent for to the Privy Seal, whither I was forced to go and stay so long and late that I was much vexed.`,

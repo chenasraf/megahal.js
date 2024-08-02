@@ -1,7 +1,7 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import os from 'node:os'
-import MegaHAL from '@/index'
+import MegaHAL from '../src/index'
 import '@/personalities/sherlock'
 
 describe('megahal', () => {

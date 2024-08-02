@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "ci": "pnpm install --frozen-lockfile",
-    "build": "tsc",
+    "build": "rm -rf build && tsc &&  cp package.json README.md build/",
     "test": "jest"
   },
   "keywords": [

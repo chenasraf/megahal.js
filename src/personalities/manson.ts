@@ -1,4 +1,4 @@
-import { MegaHAL } from '@/megahal'
+import { MegaHAL } from '../megahal'
 
 MegaHAL.addPersonality('manson', [
   'Anti choice',

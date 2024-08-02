@@ -1,4 +1,4 @@
-import { MegaHAL } from '@/megahal'
+import { MegaHAL } from '../megahal'
 
 MegaHAL.addPersonality('ferris', [
   "Hello there, it is indeed a great pleasure to meet you.  I'm Ferris.",

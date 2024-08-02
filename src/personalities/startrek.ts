@@ -1,4 +1,4 @@
-import { MegaHAL } from '@/megahal'
+import { MegaHAL } from '../megahal'
 
 MegaHAL.addPersonality('startrek', [
   `Hello, it is indeed a great pleasure to meet you.  I am Lt. Commander Data. `,
