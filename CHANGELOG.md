@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/chenasraf/megahal.js/compare/v1.0.3...v1.1.0) (2024-08-07)
+
+
+### Features
+
+* add usedWords property ([feb6456](https://github.com/chenasraf/megahal.js/commit/feb6456f2ec84ce2938a71e5ba2971af3876e7b0))
+
 ## [1.0.3](https://github.com/chenasraf/megahal.js/compare/v1.0.2...v1.0.3) (2024-08-02)
 
 
