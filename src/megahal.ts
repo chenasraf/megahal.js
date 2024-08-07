@@ -7,15 +7,25 @@ import path from 'node:path'
 import os from 'node:os'
 
 export class MegaHAL {
+  /** Whether the model is in learning mode. */
   public learning: boolean
+
+  /** The brain context. */
+  public brain: Record<string, number>
+
+  /** The dictionary of words to symbols. */
+  public dictionary: Record<string, number>
+
+  /** The list of used words in the last generated reply. */
+  public usedWords: string[] = []
+
   public seed: SoothPredictor
   public fore: SoothPredictor
   public back: SoothPredictor
   public case: SoothPredictor
   public punc: SoothPredictor
-  public brain: Record<string, number>
 
-  public dictionary: Record<string, number>
+  public static specialDictionaryTokens = ['<error>', '<fence>', '<blank>']
 
   constructor(personality?: string) {
     this.learning = true
@@ -26,6 +36,7 @@ export class MegaHAL {
     this.punc = new SoothPredictor(0)
     this.brain = {}
     this.dictionary = { '<error>': 0, '<fence>': 1, '<blank>': 2 }
+    this.usedWords = []
     this.become(personality || 'default')
   }
 
@@ -33,13 +44,14 @@ export class MegaHAL {
    * Clears all predictors and dictionaries.
    */
   public clear(): void {
+    this.brain = {}
+    this.dictionary = { '<error>': 0, '<fence>': 1, '<blank>': 2 }
+    this.usedWords = []
     this.seed.clear()
     this.fore.clear()
     this.back.clear()
     this.case.clear()
     this.punc.clear()
-    this.dictionary = { '<error>': 0, '<fence>': 1, '<blank>': 2 }
-    this.brain = {}
   }
 
   /**
@@ -181,6 +193,7 @@ export class MegaHAL {
    * Generates a reply for the given input string.
    */
   public reply(input: string, error = '...'): string {
+    this.usedWords = []
     const [puncs, norms, words] = this._decompose(input?.trim())
 
     const kwSymbols = [...Keywords.extract(norms)].map((kw) => this.dictionary[kw!]).filter(notNull)
@@ -205,7 +218,13 @@ export class MegaHAL {
       }
       reply = this._rewrite(utterance)
       utterances.splice(utterances.indexOf(utterance), 1)
-      utterances = utterances.filter(notNull)
+    }
+    utterances = utterances.filter(notNull)
+
+    if (reply) {
+      const used = this._symbolsToStrings(inputSymbols).filter((s) => !(puncs ?? []).includes(s))
+      //.filter((w) => (words ?? []).includes(w))
+      this.usedWords.push(...used)
     }
 
     if (this.learning && norms) {
@@ -548,6 +567,10 @@ export class MegaHAL {
       .flat()
       .map((x) => decode[x as number])
       .join('')
+  }
+
+  private _symbolsToStrings(symbols: number[]): string[] {
+    return symbols.map((s) => Object.keys(this.dictionary).find((k) => this.dictionary[k] === s)!)
   }
 
   /**
