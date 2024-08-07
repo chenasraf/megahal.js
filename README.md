@@ -1,6 +1,6 @@
 # megahal.js
 
-[MegaHAL](https://en.wikipedia.org/wiki/MegaHAL) is a simple chatterbot.
+[MegaHAL](https://en.wikipedia.org/wiki/MegaHAL) is a simple, learning chatterbot.
 
 This is a JavaScript implementation of the MegaHAL algorithm, more specifically a direct, nearly
 one-to-one port of [kranzky/megahal](https://github.com/kranzky/megahal). Major credits to kranzky,
